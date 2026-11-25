@@ -1,0 +1,4 @@
+# DEEP DIVE desktop (desktop/deepdive.py). Create the venv with:
+#   python3 -m venv --system-site-packages desktop/.venv && desktop/.venv/bin/pip install -r desktop/requirements.txt
+pygame>=2.6
+python-xlib>=0.33

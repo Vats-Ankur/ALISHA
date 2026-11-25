@@ -1,0 +1,5 @@
+# Starts the DEEP DIVE live wallpaper at login. Install: copy to ~/.config/autostart/
+[Desktop Entry]
+Type=Application
+Name=DEEP DIVE live wallpaper
+Exec=/home/kali/Documents/ALISHA-Setup/desktop/.venv/bin/python -I /home/kali/Documents/ALISHA-Setup/desktop/deepdive.py --live

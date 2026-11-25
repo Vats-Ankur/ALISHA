@@ -1,0 +1,28 @@
+A.L.I.S.H.A. — Advanced Learning Intelligent System for Human Assistance
+Copyright 2026 Ankur Vats (@Vats-Ankur)
+Official repository: https://github.com/Vats-Ankur/ALISHA
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+Any redistribution, modified or not, must keep this NOTICE file and credit the
+original author as required by Section 4(d) of the license.
+
+PROJECT NAME
+"ALISHA", "A.L.I.S.H.A." and "DEEP DIVE" (as the name of this project's screensaver)
+are names of this project and its author. As stated in Section 6 of the Apache
+License, no permission is granted to use them. Modified versions must use a
+different name and must not suggest that they are the official project or are
+endorsed by the author.
+
+THIRD-PARTY COMPONENTS
+These keep their own licenses. Components marked "not included" are downloaded
+or installed separately and are not part of this repository.
+- esp32-hud/firmware/main/font_hack_*.c: glyphs converted from the Hack font
+  (Copyright 2018 Source Foundry Authors), MIT License + Bitstream Vera License.
+- esp32-hud/firmware/main/font_icons_13.c: three icons from Font Awesome Free 6
+  (Fonticons, Inc.), SIL Open Font License 1.1.
+- LVGL (MIT), ESP-IDF (Apache 2.0) and Espressif components (esp_codec_dev,
+  esp_lvgl_port, esp_lcd_touch): fetched at build time, not included.
+- Piper TTS (piper-tts, GPL-3.0-or-later) and Piper voice models: installed
+  separately, not included.
+- Vosk speech recognition (Apache 2.0) and its models: not included.
+- whisper.cpp (MIT), via the companion HushType project: not included.

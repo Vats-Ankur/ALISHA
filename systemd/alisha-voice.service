@@ -1,0 +1,16 @@
+# Runs the ALISHA voice assistant (voice/alisha_voice.py) in the desktop session.
+# Install: copy to ~/.config/systemd/user/ then: systemctl --user enable --now alisha-voice
+[Unit]
+Description=A.L.I.S.H.A. offline voice assistant
+After=graphical-session.target pipewire.service
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+Environment=DISPLAY=:0
+ExecStart=%h/alisha-voice/venv/bin/python %h/.config/alisha/voice/alisha_voice.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

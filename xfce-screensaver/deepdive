@@ -1,0 +1,3 @@
+#!/bin/sh
+# DEEP DIVE screensaver launcher (xfce4-screensaver only runs themes from this folder)
+exec /usr/bin/python3 -I /home/kali/Documents/ALISHA-Setup/desktop/deepdive.py "$@"

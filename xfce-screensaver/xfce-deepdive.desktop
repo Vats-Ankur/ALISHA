@@ -1,0 +1,13 @@
+# Registers DEEP DIVE as an xfce4-screensaver theme.
+# Install: sudo cp to /usr/share/applications/screensavers/ (launcher goes to /usr/libexec/xfce4-screensaver/)
+[Desktop Entry]
+Name=DEEP DIVE
+Comment=Live hacker console: LAN radar, globe, decrypt and signal panels driven by this machine's real data.
+Exec=/usr/libexec/xfce4-screensaver/deepdive
+TryExec=/usr/libexec/xfce4-screensaver/deepdive
+StartupNotify=false
+Terminal=false
+Type=Application
+Categories=Screensaver;
+OnlyShowIn=XFCE;
+Hidden=true

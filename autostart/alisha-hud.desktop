@@ -1,0 +1,10 @@
+# Starts the conky A.L.I.S.H.A. panel at login. Install: copy to ~/.config/autostart/
+[Desktop Entry]
+Type=Application
+Name=ALISHA HUD
+Comment=Conky system HUD (Iron Man / ALISHA theme)
+Exec=sh -c "sleep 8; conky -c $HOME/.config/conky/alisha.conf"
+Icon=utilities-system-monitor
+Terminal=false
+X-GNOME-Autostart-enabled=true
+Hidden=false
