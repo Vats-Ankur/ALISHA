@@ -44,10 +44,10 @@ So I rebuilt the whole thing from scratch with one rule: **everything runs local
 ## `> VISUAL FEED`
 
 <p align="center">
-  <img src="docs/hud-gallery.png" alt="ALISHA HUD screens: boot, listening, speaking, system, network, controls" width="100%">
+  <a href="https://raw.githubusercontent.com/Vats-Ankur/ALISHA/master/docs/hud-gallery.png"><img src="docs/hud-gallery.png" alt="ALISHA HUD screens: boot, listening, speaking, system, network, controls" width="100%"></a>
 </p>
 
-<p align="center"><sub>Real screens from the firmware, rendered with the built-in desktop preview (<code>esp32-hud/sim</code>).</sub></p>
+<p align="center"><sub>Real screens from the firmware, rendered with the built-in desktop preview (<code>esp32-hud/sim</code>). 🔍 <a href="https://raw.githubusercontent.com/Vats-Ankur/ALISHA/master/docs/hud-gallery.png">Open full size</a></sub></p>
 
 ## `> CAPABILITIES`
 
@@ -76,10 +76,10 @@ So I rebuilt the whole thing from scratch with one rule: **everything runs local
 ## `> ARCHITECTURE`
 
 <p align="center">
-  <a href="docs/architecture.svg"><img src="docs/architecture.png" alt="ALISHA architecture board: you, the ESP32-S3 HUD board and the Raspberry Pi, with numbered data flow" width="100%"></a>
+  <a href="https://raw.githubusercontent.com/Vats-Ankur/ALISHA/master/docs/architecture.png"><img src="docs/architecture.png" alt="ALISHA architecture board: you, the ESP32-S3 HUD board and the Raspberry Pi, with numbered data flow" width="100%"></a>
 </p>
 
-<p align="center"><sub>Whiteboard-style architecture board. Numbered connectors follow one request end to end. Click it for the full-size, editable SVG; regenerate it with <code>scripts/make_architecture.py</code>.</sub></p>
+<p align="center"><sub>Whiteboard-style architecture board: numbered connectors follow one request end to end.<br><b>🔍 <a href="https://raw.githubusercontent.com/Vats-Ankur/ALISHA/master/docs/architecture.png">Open full size</a></b> (opens the image on its own; click or pinch to zoom) · <a href="docs/architecture.svg">editable SVG</a></sub></p>
 
 **Link security:**
 - Every serial frame is length-capped and CRC-checked, and each message type must have an exact size.

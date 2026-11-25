@@ -271,7 +271,7 @@ def render(board, out_base):
         with open(page, "w") as f:
             f.write(f'<html><body style="margin:0">{svg}</body></html>')
         subprocess.run([chrome, "--headless=new", "--disable-gpu", "--no-sandbox", "--hide-scrollbars",
-                        f"--window-size={board.w},{board.h}", "--force-device-scale-factor=1",
+                        f"--window-size={board.w},{board.h}", "--force-device-scale-factor=2",
                         f"--screenshot={out_base}.png", f"file://{page}"],
                        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print("wrote", out_base + ".svg/.png")
