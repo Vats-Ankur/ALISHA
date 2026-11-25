@@ -34,6 +34,8 @@ _CTL_SOCK = os.path.join(_RUNTIME, "alisha-ctl.sock")
 # Only these exact phrases are accepted from the HUD's touch buttons.
 CTL_ALLOWED = {"system status", "lock the screen", "run matrix", "what time is it"}
 CTL_QUEUE = queue.Queue()
+GREETING = "Yes, sir, how can I help you?"   # spoken when she is called by name alone
+LISTEN_WAIT = 8.0                           # seconds she keeps listening for the command
 
 def hud(t, v=""):
     try:
@@ -503,7 +505,7 @@ def main():
         keep_audio: keep what the user already started saying while Alisha was busy."""
         flush(drop_audio=not (keep_audio and board_echo_guard()))
         hud("state", prompt_state)
-        pcm = capture_until_silence(q)
+        pcm = capture_until_silence(q, wait_secs=LISTEN_WAIT)
         if not pcm:
             return ""
         hud("state", "thinking")
@@ -578,8 +580,7 @@ def main():
                 if not awake:
                     awake = True
                     print("\033[90m(woken by name)\033[0m", flush=True)
-                    say("I'm back, sir.")
-                hud("reply", "Yes, sir?")
+                say(GREETING)
                 cmd = listen_for()
                 if cmd and run_command(WAKE_RE.sub(" ", cmd).strip()) == "sleep":
                     awake = False
@@ -612,7 +613,7 @@ def main():
                 cmd = re.sub(r"\b(please|wake( up)?|are you there|you there|i'?m back|come back|"
                              r"online|hello|hi|hey|good morning)\b", " ", command_words(cmd)).strip()
                 if not cmd:
-                    say("Online and ready, sir.")
+                    say(GREETING)
                     cmd = listen_for()
                     if not cmd:
                         flush()
@@ -620,7 +621,7 @@ def main():
                         continue
 
             if not command_words(cmd):       # just "Alisha" -> listen for the command
-                hud("reply", "Yes, sir?")
+                say(GREETING)
                 cmd = listen_for()
                 if not cmd:
                     flush()

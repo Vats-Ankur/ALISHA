@@ -62,7 +62,7 @@ So I rebuilt the whole thing from scratch with one rule: **everything runs local
 | ⌨️ **Dictation** | "Alisha, type…" hands over to HushType, which types whatever you say into any window. |
 
 ### Voice commands
-Say **"Alisha"** followed by the command in one breath. Or say **"Alisha"**, wait for her reply, then give the command. Natural phrasings work, for example "what's the time" or "make the lights blue".
+Say **"Alisha"** and she answers *"Yes, sir, how can I help you?"*, then listens for up to 8 seconds for your command. You can also say it all in one breath ("Alisha, what time is it"). Natural phrasings work, for example "what's the time" or "make the lights blue".
 
 | Say | Result |
 |---|---|
