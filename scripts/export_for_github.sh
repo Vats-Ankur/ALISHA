@@ -42,6 +42,9 @@ copy "$SRC_A/scripts/export_for_github.sh"  "$A/scripts/export_for_github.sh"
 # ALISHA-SETUP.md is a personal machine log (installed tools, host fixes) and stays private
 copy "$SRC_A/docs/banner.png"               "$A/docs/banner.png"
 copy "$SRC_A/docs/hud-gallery.png"          "$A/docs/hud-gallery.png"
+copy "$SRC_A/docs/architecture.png"         "$A/docs/architecture.png"
+copy "$SRC_A/docs/architecture.svg"         "$A/docs/architecture.svg"
+copy "$SRC_A/scripts/make_architecture.py"  "$A/scripts/make_architecture.py"
 copy "$SRC_A/scripts/make_readme_art.py"    "$A/scripts/make_readme_art.py"
 
 copy "$HOME/.config/alisha/voice/alisha_voice.py"  "$A/voice/alisha_voice.py"

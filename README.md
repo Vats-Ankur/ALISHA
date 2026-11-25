@@ -75,22 +75,11 @@ So I rebuilt the whole thing from scratch with one rule: **everything runs local
 
 ## `> ARCHITECTURE`
 
-```mermaid
-flowchart LR
-  subgraph BOARD["ESP32-S3 board (no Wi-Fi, no secrets)"]
-    MIC["ES7210 4-mic array"] --> FW["alisha_hud firmware"]
-    FW --> SPK["ES8311 speaker"]
-    FW --> LCD["320x240 HUD"]
-  end
-  FW <-->|"USB serial: framed, CRC-16 checked"| BR["alisha-hud-bridge"]
-  subgraph PI["Raspberry Pi 5 · Kali Linux"]
-    BR -->|"virtual mic"| VOICE["alisha-voice"]
-    VOICE -->|"Whisper + cleanup"| HT["HushType server"]
-    VOICE -->|"Piper voice"| BR
-    VOICE -->|"state, heard, reply"| BR
-    SYS["system stats, LAN hosts, journal"] --> BR
-  end
-```
+<p align="center">
+  <a href="docs/architecture.svg"><img src="docs/architecture.png" alt="ALISHA architecture board: you, the ESP32-S3 HUD board and the Raspberry Pi, with numbered data flow" width="100%"></a>
+</p>
+
+<p align="center"><sub>Whiteboard-style architecture board. Numbered connectors follow one request end to end. Click it for the full-size, editable SVG; regenerate it with <code>scripts/make_architecture.py</code>.</sub></p>
 
 **Link security:**
 - Every serial frame is length-capped and CRC-checked, and each message type must have an exact size.
