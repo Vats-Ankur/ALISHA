@@ -67,12 +67,15 @@ copy /usr/share/applications/screensavers/xfce-deepdive.desktop "$A/xfce-screens
 note "$A/xfce-screensaver/xfce-deepdive.desktop" "# Registers DEEP DIVE as an xfce4-screensaver theme.
 # Install: sudo cp to /usr/share/applications/screensavers/ (launcher goes to /usr/libexec/xfce4-screensaver/)"
 
-copy /etc/nftables.conf "$A/system/nftables.conf"
-copy /etc/ssh/sshd_config.d/10-alisha-hardening.conf "$A/system/sshd-10-alisha-hardening.conf"
-cat > "$A/system/sudoers-kali-user.example" <<'EOF'
-# /etc/sudoers.d/kali-user (example) - always edit with: sudo visudo -f /etc/sudoers.d/kali-user
-# sudo asks for a password for everything EXCEPT the exact commands ALISHA's voice
-# actions need (case lights and shutdown). Arguments are matched exactly.
+# Machine settings (firewall, SSH) are NOT exported: they belong to the host, not the project.
+# Only the sudo rule ALISHA needs for "set the lights" and "shut down" is published.
+mkdir -p "$A/system"
+cat > "$A/system/sudoers-alisha.example" <<'EOF'
+# /etc/sudoers.d/alisha  - lets ALISHA run exactly these root commands without a password.
+# Needed for the "set the lights ..." (Pironman 5 case LEDs) and "shut down" voice commands.
+# Replace "kali" with your user, then install with:  sudo visudo -f /etc/sudoers.d/alisha
+# Paths and arguments must match exactly: ALISHA calls them by full path, and sudo
+# refuses a bare "pironman5" even when this rule exists.
 Cmnd_Alias ALISHA_LIGHTS = /usr/local/bin/pironman5 -rs rainbow, \
     /usr/local/bin/pironman5 -rs solid -rc ff0000, /usr/local/bin/pironman5 -rs solid -rc 00ff00, \
     /usr/local/bin/pironman5 -rs solid -rc 0000ff, /usr/local/bin/pironman5 -rs solid -rc aa00ff, \

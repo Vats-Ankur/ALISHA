@@ -58,19 +58,22 @@ So I rebuilt the whole thing from scratch with one rule: **everything runs local
 | 🛰️ **Holographic HUD** | Custom ESP32-S3 firmware (ESP-IDF 5.4, LVGL 9) with a boot sequence and a reactor orb with a voice-reactive tick ring and radar sweep. Also: holo panels, text that "decrypts", typewriter replies, and system/network/activity pages. |
 | 🔊 **Board audio** | The 4-mic ES7210 array appears on the Pi as a USB microphone, and the ES8311 speaker as a sound output. It has a jitter buffer and an echo guard, so Alisha never hears herself. |
 | 🌌 **DEEP DIVE** | A live desktop wallpaper and screensaver that adapts to the screen: LAN radar, globe, decryption stream and signal panels driven by real system data. |
-| 🛡️ **Hardening** | nftables firewall (inbound drop), SSH limited to the LAN, a minimal sudoers rule set, and a firmware threat model ([`SECURITY.md`](esp32-hud/SECURITY.md)). |
+| 🛡️ **Least privilege** | Unprivileged user services, owner-only Unix sockets, an exact-match sudo rule for the only two root actions (case lights, power-off), and a firmware threat model ([`SECURITY.md`](esp32-hud/SECURITY.md)). |
 | ⌨️ **Dictation** | "Alisha, type…" hands over to HushType, which types whatever you say into any window. |
 
 ### Voice commands
+Say **"Alisha"** followed by the command in one breath. Or say **"Alisha"**, wait for her reply, then give the command. Natural phrasings work, for example "what's the time" or "make the lights blue".
+
 | Say | Result |
 |---|---|
-| "Alisha, **system status**" | CPU load, temperature and memory, spoken |
-| "Alisha, **what time is it**" | The time |
-| "Alisha, **open terminal / browser / burp**" | Launches the app |
-| "Alisha, **set lights** red / green / blue / rainbow" | Pironman 5 case lighting |
+| "Alisha, **system status**" / "how are you" | CPU load, temperature and memory, spoken |
+| "Alisha, **what time is it**" / "what's the **date**" | The time or today's date |
+| "Alisha, **open** the terminal / browser / Burp / Wireshark / files" | Launches the app |
+| "Alisha, **set the lights** to red / green / blue / purple / cyan / white" or "lights **rainbow**" | Pironman 5 case lighting |
 | "Alisha, **run matrix**" / "**lock the screen**" | Just that |
 | "Alisha, **type**" / "Alisha, **type** hello world" | Dictation through HushType |
-| "Alisha, **go to sleep**" | Stops listening for commands until woken |
+| "Alisha, **help**" | Lists what she can do |
+| "Alisha, **go to sleep**" | Stops acting on commands. Saying **"Alisha"** (or "Alisha, wake up") wakes her |
 | "Alisha, **shut down**" | Asks you to say "confirm" first |
 
 ## `> ARCHITECTURE`
@@ -105,7 +108,7 @@ esp32-hud/
 desktop/          DEEP DIVE live wallpaper + xfce4-screensaver theme
 conky/ fastfetch/ shell/    Desktop panel, terminal banner, zsh greeting
 systemd/ autostart/ xfce-screensaver/    Start everything at login
-system/           Firewall, SSH and sudo hardening (review before use)
+system/           sudo rule for the lights and shut-down commands
 scripts/          Font converter, README art, wallpaper, export tooling
 docs/             Setup log and images
 ```
@@ -134,7 +137,7 @@ docs/             Setup log and images
    python3 -m venv --system-site-packages desktop/.venv && desktop/.venv/bin/pip install -r desktop/requirements.txt
    ```
    Then copy the `autostart/` and `xfce-screensaver/` entries into place.
-6. **Hardening (optional):** read `system/` carefully and adapt the LAN range before copying anything into `/etc`.
+6. **Lights and shut-down (optional):** install `system/sudoers-alisha.example` with `sudo visudo -f /etc/sudoers.d/alisha`. It allows only the exact Pironman 5 light commands and power-off, with no password.
 
 **Preview the HUD without the board:**
 ```bash

@@ -93,7 +93,8 @@ WAKE_RE = re.compile(r"\b(?:hey\s+|okay\s+|ok\s+)?(?:alisha|aleesha|alesha|alici
 FUZZY_DICTATE_RE = re.compile(r"^\W*(?:[\w']+\W+){1,4}?(?=(?:type|types|dictate|dictation)\b(?!\W+of\b))", re.I)
 CMD_PROMPT = ("Alisha, system status. Alisha, what time is it? Alisha, open terminal. Alisha, open browser. "
               "Alisha, open Burp. Alisha, open Wireshark. Alisha, lock the screen. Alisha, run matrix. "
-              "Alisha, set lights to red. Alisha, type. Alisha, go to sleep. Alisha, wake up.")
+              "Alisha, set the lights to blue. Alisha, lights rainbow. Alisha, what's the date? "
+              "Alisha, help. Alisha, type. Alisha, go to sleep. Alisha, wake up. Alisha, shut down. Confirm.")
 
 def _lf_load():
     """Use HushType's own cleanup + dictionary + whisper settings when available."""
@@ -305,42 +306,69 @@ def _speak(text):
         _play_wav(wav)
 
 # ---------- actions ----------
+# Privileged helpers are called by FULL PATH: the sudoers rule allows exactly these paths and
+# arguments, and sudo refuses the bare name ("pironman5") even though the rule lists it.
+PIRONMAN = "/usr/local/bin/pironman5"
+POWEROFF = "/usr/sbin/poweroff"
+
 def action_status():
     try:
         load = open("/proc/loadavg").read().split()[0]
         temp = sh("vcgencmd measure_temp").stdout.strip().replace("temp=", "").replace("'C", " degrees")
         mem = sh("free -m | awk '/Mem:/{printf \"%d\", $3*100/$2}'").stdout.strip()
         say(f"All systems nominal. CPU load {load}. Temperature {temp}. Memory at {mem} percent.")
-    except Exception as e:
+    except Exception:
         say("I could not read the system status.")
 
 def action_time():
-    say("The time is " + time.strftime("%H:%M"))
+    t = time.localtime()
+    hour = t.tm_hour % 12 or 12
+    say(f"It's {hour}:{t.tm_min:02d} {'AM' if t.tm_hour < 12 else 'PM'}.")
 
-def action_open(what):
-    apps = {"terminal": "qterminal", "browser": "firefox-esr", "firefox": "firefox-esr",
-            "burp": "burpsuite", "bloodhound": "bloodhound", "files": "thunar",
-            "wireshark": "wireshark"}
-    for key, cmd in apps.items():
-        if key in what:
-            if shutil.which(cmd.split()[0]):
-                subprocess.Popen(cmd, shell=True, env=dict(os.environ, DISPLAY=DISPLAY))
-                say(f"Opening {key}.")
+def action_date():
+    say("Today is " + time.strftime("%A, %B ") + str(time.localtime().tm_mday) + ".")
+
+APPS = [  # (spoken names, command, name to say)
+    (("terminal", "console", "shell", "command line"), "qterminal", "the terminal"),
+    (("browser", "firefox", "internet", "web"), "firefox-esr", "the browser"),
+    (("burp",), "burpsuite", "Burp Suite"),
+    (("wireshark", "wire shark"), "wireshark", "Wireshark"),
+    (("bloodhound", "blood hound"), "bloodhound", "BloodHound"),
+    (("files", "file manager", "folder"), "thunar", "the file manager"),
+]
+
+def action_open(cmd):
+    for names, prog, spoken in APPS:
+        if any(re.search(rf"\b{n}\b", cmd) for n in names):
+            if shutil.which(prog):
+                subprocess.Popen(prog, shell=True, env=dict(os.environ, DISPLAY=DISPLAY))
+                say(f"Opening {spoken}.")
             else:
-                say(f"{key} is not installed yet.")
+                say(f"{spoken} is not installed.")
             return
-    say("I am not sure which application you mean.")
+    say("Which application? Terminal, browser, Burp, Wireshark, BloodHound or files.")
+
+COLOURS = [  # (spoken names, hex allowed by the sudoers rule, name to say)
+    (("red",), "ff0000", "red"), (("green",), "00ff00", "green"), (("blue", "navy"), "0000ff", "blue"),
+    (("purple", "violet", "magenta", "pink"), "aa00ff", "purple"),
+    (("cyan", "teal", "aqua", "turquoise", "jarvis"), "1fb6ff", "cyan"), (("white",), "ffffff", "white"),
+]
 
 def action_lights(cmd):
-    colors = {"red": "ff0000", "green": "00ff00", "blue": "0000ff",
-              "purple": "aa00ff", "cyan": "1fb6ff", "white": "ffffff"}
-    if "rainbow" in cmd:
-        sh("sudo -n pironman5 -rs rainbow"); say("Engaging rainbow lighting."); return
-    for name, hexv in colors.items():
-        if name in cmd:
-            sh(f"sudo -n pironman5 -rs solid -rc {hexv}")
-            say(f"Setting the lights to {name}."); return
-    say("Which colour would you like?")
+    if re.search(r"\brainbow|colou?rful|disco|party\b", cmd):
+        r = sh(f"sudo -n {PIRONMAN} -rs rainbow")
+        say("Engaging rainbow lighting." if r.returncode == 0 else "I could not change the lights.")
+        return
+    for names, hexv, spoken in COLOURS:
+        if any(re.search(rf"\b{n}\b", cmd) for n in names):
+            r = sh(f"sudo -n {PIRONMAN} -rs solid -rc {hexv}")
+            if r.returncode == 0:
+                say(f"Lights set to {spoken}.")
+            else:
+                print(f"[lights] failed: {r.stderr.strip()}", file=sys.stderr, flush=True)
+                say("I could not change the lights. The permission rule may be missing.")
+            return
+    say("Which colour? Red, green, blue, purple, cyan, white or rainbow.")
 
 def action_matrix():
     subprocess.Popen("qterminal -e 'cmatrix -b -C cyan'", shell=True,
@@ -348,21 +376,60 @@ def action_matrix():
     say("Entering the matrix.")
 
 def action_lock():
-    say("Locking the terminal.")
+    say("Locking the screen.")
     sh("xflock4 || loginctl lock-session")
+
+def action_help():
+    say("You can say: system status, what time is it, what's the date, open the terminal or browser, "
+        "set the lights to a colour, run matrix, lock the screen, type, go to sleep, or shut down.")
 
 PENDING_SHUTDOWN = {"armed": False}
 def action_shutdown():
     PENDING_SHUTDOWN["armed"] = True
     say("This will power off the machine. Say confirm to proceed.")
 
+def _any(cmd, *patterns):
+    return any(re.search(p, cmd) for p in patterns)
+
+# Intent table, checked top to bottom. Patterns run on lower-case, punctuation-free words and
+# cover natural phrasings plus common Whisper near-misses ("flights" for "lights").
+INTENTS = [
+    ("wake",     (r"^(wake( up)?|are you (there|awake|up)|you there|i'?m back|hello|hi|hey)\b",)),
+    ("sleep",    (r"\b(go(ing)? to sleep|sleep mode|stand down|stop listening|take a break|goodnight|good night)\b",)),
+    ("shutdown", (r"\b(shut ?down|power (off|down)|turn off (the )?(computer|pi|system|machine))\b",)),
+    ("lights",   (r"\b(lights?|lighting|leds?|lamps?|flights?|glow|rgb)\b",
+                  r"\b(set|make|turn|change|switch)\b.*\b(red|green|blue|purple|violet|cyan|teal|white|rainbow)\b")),
+    ("time",     (r"\btime\b", r"\bclock\b", r"\bwhat hour\b", r"\bo'?clock\b")),
+    ("date",     (r"\bdate\b", r"\bwhat day\b", r"\bwhich day\b", r"\btoday\b")),
+    ("status",   (r"\bstatus\b", r"\breport\b", r"\bdiagnostics?\b", r"\bhow are you\b", r"\bsystems? check\b",
+                  r"\bhealth\b", r"\btemperature\b")),
+    ("open",     (r"^(please )?(open|launch|start|run|show)\b(?!.*\bmatrix\b)",)),
+    ("matrix",   (r"\bmatrix\b",)),
+    ("lock",     (r"\block\b",)),
+    ("help",     (r"\bhelp\b", r"\bwhat can you do\b", r"\bcommands\b")),
+    ("thanks",   (r"\bthanks?\b", r"\bthank you\b", r"\bcheers\b")),
+    ("whoami",   (r"\bwho are you\b", r"\byour name\b", r"\bintroduce yourself\b")),
+    ("cancel",   (r"^(never ?mind|cancel|forget it|nothing)\b",)),
+]
+
+def match_intent(cmd):
+    for name, pats in INTENTS:
+        if _any(cmd, *pats):
+            return name
+    return None
+
 def handle(cmd):
-    cmd = cmd.lower().strip()
+    """Run one command. Returns "sleep" when Alisha should stand by, otherwise True."""
+    cmd = command_words(cmd)
     if PENDING_SHUTDOWN["armed"]:
-        if "confirm" in cmd:
-            say("Powering down. Goodbye, sir."); time.sleep(2); sh("sudo -n poweroff")
+        PENDING_SHUTDOWN["armed"] = False
+        if re.search(r"\b(confirm|confirmed|yes|do it)\b", cmd):
+            say("Powering down. Goodbye, sir."); time.sleep(2)
+            r = sh(f"sudo -n {POWEROFF}")
+            if r.returncode != 0:
+                say("I could not power off. The permission rule may be missing.")
         else:
-            PENDING_SHUTDOWN["armed"] = False; say("Shutdown cancelled.")
+            say("Shutdown cancelled.")
         return True
     m = DICTATE_RE.match(cmd)
     if m:
@@ -371,28 +438,25 @@ def handle(cmd):
         if not hushtype(f"text:{rest}" if rest else "listen"):
             say("Dictation is offline. Start HushType first.")
         return True
-    if any(w in cmd for w in ("status", "report", "how are you", "diagnostic")):
-        action_status()
-    elif "time" in cmd:
-        action_time()
-    elif cmd.startswith("open") or "launch" in cmd or "start" in cmd:
-        action_open(cmd)
-    elif "light" in cmd or "led" in cmd or "lights" in cmd:
-        action_lights(cmd)
-    elif "matrix" in cmd:
-        action_matrix()
-    elif "lock" in cmd:
-        action_lock()
-    elif "shut down" in cmd or "shutdown" in cmd or "power off" in cmd:
-        action_shutdown()
-    elif "thank" in cmd:
-        say("Always a pleasure, sir.")
-    elif "who are you" in cmd or "your name" in cmd:
-        say("I am Alisha. Advanced Learning Intelligent System for Human Assistance.")
-    elif "sleep" in cmd or "stand down" in cmd or "never mind" in cmd:
-        say("Standing by."); return "sleep"
-    elif cmd:
-        say("I did not catch a known command.")
+    intent = match_intent(cmd)
+    print(f"\033[90m[command] {cmd!r} -> {intent}\033[0m", flush=True)
+    if intent == "sleep":
+        say("Going to sleep. Say Alisha to wake me."); return "sleep"
+    {
+        "shutdown": action_shutdown,
+        "lights":   lambda: action_lights(cmd),
+        "time":     action_time,
+        "date":     action_date,
+        "status":   action_status,
+        "open":     lambda: action_open(cmd),
+        "matrix":   action_matrix,
+        "lock":     action_lock,
+        "help":     action_help,
+        "thanks":   lambda: say("Always a pleasure, sir."),
+        "whoami":   lambda: say("I am Alisha. Advanced Learning Intelligent System for Human Assistance."),
+        "cancel":   lambda: say("Okay."),
+        "wake":     lambda: say("I'm awake and listening, sir."),
+    }.get(intent, lambda: say("I did not catch a known command. Say Alisha, help, to hear what I can do."))()
     return True
 
 # ---------- main listen loop ----------
@@ -418,9 +482,15 @@ def main():
     def cb(indata, frames, t, status):
         q.put(bytes(indata))
 
-    def flush():
-        """Drop audio captured while we were busy/speaking so Alisha never hears itself."""
-        while not q.empty():
+    def board_echo_guard():
+        """True when replies play on the ESP32 board: its firmware mutes the mic while speaking,
+        so speech captured while Alisha was busy is the user's and can be kept."""
+        sinks = subprocess.run(["pactl", "list", "short", "sinks"], capture_output=True, text=True).stdout
+        return BOARD_SINK in sinks
+
+    def flush(drop_audio=True):
+        """Reset recognition. drop_audio also discards queued audio so Alisha never hears itself."""
+        while drop_audio and not q.empty():
             try:
                 q.get_nowait()
             except queue.Empty:
@@ -428,9 +498,10 @@ def main():
         rec.Reset()
         utt.clear()
 
-    def listen_for(prompt_state="listening"):
-        """Capture one follow-up sentence (after a bare 'Alisha' or a confirm prompt)."""
-        flush()
+    def listen_for(prompt_state="listening", keep_audio=False):
+        """Capture one follow-up sentence (after a bare 'Alisha' or a confirm prompt).
+        keep_audio: keep what the user already started saying while Alisha was busy."""
+        flush(drop_audio=not (keep_audio and board_echo_guard()))
         hud("state", prompt_state)
         pcm = capture_until_silence(q)
         if not pcm:
@@ -444,6 +515,7 @@ def main():
         words = command_words(text)
         if not words:
             return True
+        print(f"\033[90m[heard] {text!r}\033[0m", flush=True)
         hud("heard", text)
         d = re.match(r"^\W*(?:type|types|dictate|dictation|write|take a note)\b\W*(.*)$", text, re.I | re.S)
         if d:   # keep the original casing/punctuation for typed text
@@ -500,8 +572,13 @@ def main():
 
             # wake word spotted: re-transcribe this utterance accurately
             print(f"\033[90mvosk: {vosk}\033[0m", flush=True)
-            if awake and not command_words(SPOT_RE.sub(" ", vosk)) and len(pcm) < 3 * 2 * RATE:
-                # just "Alisha" on its own: skip Whisper (slow on tiny clips), wait for the command
+            if not command_words(SPOT_RE.sub(" ", vosk)) and len(pcm) < 3 * 2 * RATE:
+                # just "Alisha" on its own: skip Whisper (slow on tiny clips), wait for the command.
+                # Saying her name is also how she wakes from sleep.
+                if not awake:
+                    awake = True
+                    print("\033[90m(woken by name)\033[0m", flush=True)
+                    say("I'm back, sir.")
                 hud("reply", "Yes, sir?")
                 cmd = listen_for()
                 if cmd and run_command(WAKE_RE.sub(" ", cmd).strip()) == "sleep":
@@ -529,12 +606,18 @@ def main():
                 continue
 
             if not awake:
-                if re.search(r"\bwake\b|\bonline\b|\bback\b", command_words(cmd)):
-                    awake = True
+                # her name wakes her; anything said after "wake up" is run as a command
+                awake = True
+                print("\033[90m(woken by name)\033[0m", flush=True)
+                cmd = re.sub(r"\b(please|wake( up)?|are you there|you there|i'?m back|come back|"
+                             r"online|hello|hi|hey|good morning)\b", " ", command_words(cmd)).strip()
+                if not cmd:
                     say("Online and ready, sir.")
-                flush()
-                hud("state", "listening" if awake else "asleep")
-                continue
+                    cmd = listen_for()
+                    if not cmd:
+                        flush()
+                        hud("state", "listening")
+                        continue
 
             if not command_words(cmd):       # just "Alisha" -> listen for the command
                 hud("reply", "Yes, sir?")

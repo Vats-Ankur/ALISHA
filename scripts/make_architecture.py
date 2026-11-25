@@ -168,10 +168,10 @@ def alisha():
     b.sticky(px + 44, py + 610, 150, 110, ["conky", "A.L.I.S.H.A.", "status panel"], "blue", 13, True)
     b.sticky(px + 206, py + 610, 150, 110, ["DEEP DIVE", "live wallpaper", "+ screensaver"], "blue", 13, True)
     b.sticky(px + 368, py + 610, 146, 110, ["zsh greeting", "+ fastfetch", "banner"], "blue", 13, True)
-    b.frame(px + 560, py + 590, 494, 146, "HARDENING", "red")
-    b.sticky(px + 576, py + 610, 150, 110, ["nftables", "inbound drop,", "LAN SSH only"], "pink", 13, True)
-    b.sticky(px + 738, py + 610, 150, 110, ["sshd", "keys only,", "post-quantum kex"], "pink", 13, True)
-    b.sticky(px + 900, py + 610, 140, 110, ["sudo", "exact commands", "only"], "pink", 13, True)
+    b.frame(px + 560, py + 590, 494, 146, "LEAST PRIVILEGE", "red")
+    b.sticky(px + 576, py + 610, 150, 110, ["user services", "nothing runs", "as root"], "pink", 13, True)
+    b.sticky(px + 738, py + 610, 150, 110, ["unix sockets", "owner-only", "(mode 0600)"], "pink", 13, True)
+    b.sticky(px + 900, py + 610, 140, 110, ["sudo rule", "lights + power", "exact paths"], "pink", 13, True)
 
     # --- connectors (the life of one command): right-angle routes through clear lanes
     b.arrow([(272, 236), (bx + 24, 236)], step=1, sx=318, sy=236)                       # speak -> mic
